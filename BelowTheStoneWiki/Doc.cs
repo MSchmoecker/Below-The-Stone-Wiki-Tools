@@ -21,5 +21,23 @@ namespace BelowTheStoneWiki {
             writer.WriteLine(text);
             writer.Flush();
         }
+
+        public void AddTable(string caption, string[] headers, string[][] rows) {
+            AddText("{| class=\"wikitable\"");
+
+            if (!string.IsNullOrEmpty(caption)) {
+                AddText($"|+ {caption}");
+            }
+
+            AddText("|-");
+            AddText("! " + string.Join(" !! ", headers));
+
+            foreach (string[] row in rows) {
+                AddText("|-");
+                AddText("| " + string.Join(" || ", row).Replace("\n ", "\n"));
+            }
+
+            AddText("|}");
+        }
     }
 }
