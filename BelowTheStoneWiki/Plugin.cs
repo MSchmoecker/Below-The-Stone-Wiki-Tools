@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿using System.Collections.Generic;
+using System.IO;
+using BelowTheStone;
+using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 
@@ -10,12 +13,18 @@ namespace BelowTheStoneWiki {
         public const string PluginVersion = "0.0.1";
 
         public static ManualLogSource Log { get; private set; }
+        public static Harmony Harmony { get; private set; } = new Harmony(PluginGUID);
+
+        private List<Doc> docs;
 
         private void Awake() {
-            Harmony harmony = new Harmony(PluginGUID);
-            harmony.PatchAll();
-
             Log = Logger;
+
+            Doc.BaseDir = Path.GetDirectoryName(Info.Location);
+
+            docs = new List<Doc>() {
+                new ItemDoc(),
+            };
         }
     }
 }

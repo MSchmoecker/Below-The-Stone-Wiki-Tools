@@ -65,7 +65,8 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Patches.cs"/>
+        <Compile Include="Doc.cs" />
+        <Compile Include="ItemDoc.cs" />
         <Compile Include="Plugin.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>
