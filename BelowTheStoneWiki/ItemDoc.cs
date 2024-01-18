@@ -38,7 +38,7 @@ namespace BelowTheStoneWiki {
             List<ClothingItem> armour = new List<ClothingItem>();
 
             List<ItemType> food = new List<ItemType>();
-            List<ItemType> potions = new List<ItemType>();
+            List<ItemType> consumables = new List<ItemType>();
 
             foreach (DatabaseElement databaseElement in database.MasterList) {
                 if (databaseElement is ItemType itemType) {
@@ -68,7 +68,7 @@ namespace BelowTheStoneWiki {
                         armour.Add(clothingItem);
                     } else if (itemType.Location == "consumable" && itemType.itemPrefab.TryGetComponent(out BasicItemLogic itemLogic)) {
                         if (itemLogic.applyEffectOnConsume) {
-                            potions.Add(itemType);
+                            consumables.Add(itemType);
                         } else {
                             food.Add(itemType);
                         }
@@ -98,10 +98,14 @@ namespace BelowTheStoneWiki {
 
             AddText("\n\n=== Tools ===\n");
             AddTable("",
-                new[] { "Name", "Item ID", "Coin Value", "Description" },
+                new[] { "Name", "Item ID", "Coin Value", "Pickaxe Power", "Mining Tier", "Description" },
                 tools.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => new[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.Description
+                    .Select(i => {
+                        PickaxeItemType pickaxe = i as PickaxeItemType;
+                        return new[] {
+                            i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), pickaxe ? pickaxe.PickaxePower.ToString() : "-",
+                            pickaxe ? pickaxe.MiningTier.ToString() : "-", i.Description
+                        };
                     }).ToArray()
             );
 
@@ -173,10 +177,10 @@ namespace BelowTheStoneWiki {
                     }).ToArray()
             );
 
-            AddText("\n\n=== Potions ===\n");
+            AddText("\n\n=== Consumables ===\n");
             AddTable("",
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Effect", "Effect Duration in Seconds", "Description" },
-                potions.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
+                consumables.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
                     .Select(i => {
                         BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
                         return new[] {
