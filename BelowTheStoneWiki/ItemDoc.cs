@@ -178,7 +178,7 @@ namespace BelowTheStoneWiki {
                 i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
             );
 
-            Plugin.Log.LogInfo("Finished documenting items.");
+            Plugin.Log.LogInfo("Finished documenting items");
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace BelowTheStoneWiki {
     public class Doc {
@@ -44,7 +45,7 @@ namespace BelowTheStoneWiki {
             AddText("|}");
         }
 
-        private string ConvertToString(object row) {
+        protected static string ConvertToString(object row) {
             if (row == null) {
                 return "-";
             } else if (row is string @string) {
@@ -69,6 +70,41 @@ namespace BelowTheStoneWiki {
             }
 
             AddTable(caption, headers, rows.ToArray());
+        }
+
+        protected static string LootToString(WeightedLoot loot) {
+            if (loot.NoLoot) {
+                return "-";
+            }
+
+            List<string> lootStrings = new List<string>();
+
+            foreach (WeightedLoot.LootGroup group in loot.groups) {
+                if (group.HasValidItems) {
+                    string items = string.Empty;
+
+                    for (int i = 0; i < group.items.Length; i++) {
+                        float percent = Mathf.Round(group.chance / group.items.Length * 100f * 100f) / 100f;
+                        items += $"{ConvertToString(percent)}% {group.items[i].DisplayName}";
+
+                        if (i < group.items.Length - 1) {
+                            items += ", ";
+                        }
+                    }
+
+                    if (group.amount == 1) {
+                        lootStrings.Add($"* {items}");
+                    } else {
+                        lootStrings.Add($"* {group.amount}x {items}");
+                    }
+                }
+            }
+
+            if (loot.allowEmptyLoot) {
+                return "\n" + string.Join("\n", lootStrings) + "\n";
+            } else {
+                return "\n" + string.Join("\n", lootStrings) + "\n* Always drops something\n";
+            }
         }
     }
 }

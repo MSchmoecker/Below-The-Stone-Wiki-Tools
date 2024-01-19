@@ -65,6 +65,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="CreatureDoc.cs" />
         <Compile Include="Doc.cs" />
         <Compile Include="ItemDoc.cs" />
         <Compile Include="Plugin.cs"/>
