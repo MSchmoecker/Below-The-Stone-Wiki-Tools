@@ -80,124 +80,102 @@ namespace BelowTheStoneWiki {
 
             AddText("\n\n=== Ore ===\n");
             AddTable("",
+                ore.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                ore.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => new[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.StackLimit.ToString(), i.Description
-                    }).ToArray()
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
             );
 
             AddText("\n\n=== Ingots ===\n");
             AddTable("",
+                ingots.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                ingots.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => new[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.StackLimit.ToString(), i.Description
-                    }).ToArray()
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
             );
 
             AddText("\n\n=== Tools ===\n");
             AddTable("",
+                tools.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Pickaxe Power", "Mining Tier", "Description" },
-                tools.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => {
-                        PickaxeItemType pickaxe = i as PickaxeItemType;
-                        return new[] {
-                            i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), pickaxe ? pickaxe.PickaxePower.ToString() : "-",
-                            pickaxe ? pickaxe.MiningTier.ToString() : "-", i.Description
-                        };
-                    }).ToArray()
+                i => {
+                    PickaxeItemType pickaxe = i as PickaxeItemType;
+                    return new object[] {
+                        i.DisplayName, i.NameID, i.GoldCoinValue, pickaxe ? pickaxe.PickaxePower : (int?)null, pickaxe ? pickaxe.MiningTier : (int?)null,
+                        i.Description
+                    };
+                }
             );
 
             AddText("\n\n=== Melee Weapons ===\n");
             AddTable("",
+                meleeWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Damage", "Attack Speed", "Reach", "Sweep", "Knockback", "Description" },
-                meleeWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => new[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.Damage.ToString(), i.SwingRate.ToString(CultureInfo.InvariantCulture),
-                        i.ReachDistance.ToString(CultureInfo.InvariantCulture), i.SwingWidth.ToString(CultureInfo.InvariantCulture),
-                        i.Knockback.ToString(CultureInfo.InvariantCulture), i.Description
-                    }).ToArray()
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.Damage, i.SwingRate, i.ReachDistance, i.SwingWidth, i.Knockback, i.Description }
             );
 
             AddText("\n\n=== Ranged Weapons ===\n");
             AddTable("",
+                rangedWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Ammunition", "Ammunition Count", "Fire Rate", "Description" },
-                rangedWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => {
-                        RangedWeaponLogic itemLogic = i.itemPrefab.GetComponent<RangedWeaponLogic>();
-                        return new[] {
-                            i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), itemLogic.ammunition.DisplayName, itemLogic.ammunitionCount.ToString(),
-                            itemLogic.fireRate.ToString(CultureInfo.InvariantCulture), i.Description
-                        };
-                    }).ToArray()
+                i => {
+                    RangedWeaponLogic itemLogic = i.itemPrefab.GetComponent<RangedWeaponLogic>();
+                    return new object[] {
+                        i.DisplayName, i.NameID, i.GoldCoinValue, itemLogic.ammunition.DisplayName, itemLogic.ammunitionCount, itemLogic.fireRate, i.Description
+                    };
+                }
             );
 
             AddText("\n\n=== Ammunition ===\n");
             AddTable("",
+                ammo.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                ammo.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => new[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.StackLimit.ToString(), i.Description
-                    }).ToArray()
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
             );
 
             AddText("\n\n=== Thrown Weapons ===\n");
             AddTable("",
+                thrownWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Damage", "Description" },
-                thrownWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => {
-                        ThrowableItemLogic itemLogic = i.itemPrefab.GetComponent<ThrowableItemLogic>();
-                        return new[] {
-                            i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), itemLogic.projectileDamage.ToString(), i.Description
-                        };
-                    }).ToArray()
+                i => {
+                    ThrowableItemLogic itemLogic = i.itemPrefab.GetComponent<ThrowableItemLogic>();
+                    return new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, itemLogic.projectileDamage, i.Description };
+                }
             );
 
             AddText("\n\n=== Armor ===\n");
             AddTable("",
+                armour.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Damage Resistance", "Body Part", "Description" },
-                armour.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => new[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.DamageResistence.ToString(), i.BodyPart.ToString(), i.Description
-                    }).ToArray()
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.DamageResistence, i.BodyPart, i.Description }
             );
 
             AddText("\n\n=== Food ===\n");
             AddTable("",
+                food.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Heal", "Description" },
-                food.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => {
-                        BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
-                        return new[] {
-                            i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.StackLimit.ToString(),
-                            itemLogic.healAmount.ToString(),
-                            i.Description
-                        };
-                    }).ToArray()
+                i => {
+                    BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
+                    return new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, itemLogic.healAmount, i.Description };
+                }
             );
 
             AddText("\n\n=== Consumables ===\n");
             AddTable("",
+                consumables.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Effect", "Effect Duration in Seconds", "Description" },
-                consumables.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => {
-                        BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
-                        return new[] {
-                            i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.StackLimit.ToString(),
-                            itemLogic.applyEffectOnConsume.DisplayName, itemLogic.effectDuration.ToString(CultureInfo.InvariantCulture),
-                            i.Description
-                        };
-                    }).ToArray()
+                i => {
+                    BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
+                    return new object[] {
+                        i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, itemLogic.applyEffectOnConsume.DisplayName, itemLogic.effectDuration,
+                        i.Description
+                    };
+                }
             );
 
             AddText("\n\n== Uncategorized ==\n");
             AddTable("",
+                uncategorized.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                uncategorized.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName)
-                    .Select(i => new[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue.ToString(), i.StackLimit.ToString(), i.Description
-                    }).ToArray()
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
             );
 
             Plugin.Log.LogInfo("Finished documenting items.");
