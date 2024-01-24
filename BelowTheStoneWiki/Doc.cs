@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using BelowTheStone.Crafting;
 using UnityEngine;
 
 namespace BelowTheStoneWiki {
@@ -105,6 +106,10 @@ namespace BelowTheStoneWiki {
             } else {
                 return "\n" + string.Join("\n", lootStrings) + "\n* Always drops something\n";
             }
+        }
+
+        protected string IngredientsToString(IReadOnlyList<Ingredient> ingredients) {
+            return "\n" + string.Join("\n", ingredients.Select(i => $"* {i.ItemCount}x {i.ItemType.DisplayName}")) + "\n";
         }
     }
 }

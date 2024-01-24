@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using BelowTheStone;
+using BelowTheStone.Crafting;
 using BelowTheStone.NewDatabase;
 using HarmonyLib;
 using UnityEngine;
@@ -10,6 +10,7 @@ using UnityEngine;
 namespace BelowTheStoneWiki {
     public class ItemDoc : Doc {
         private static ItemDoc Instance { get; set; }
+        private Dictionary<ItemType, List<CraftingRecipe>> recipes = new Dictionary<ItemType, List<CraftingRecipe>>();
 
         public ItemDoc() : base("items") {
             Instance = this;
@@ -21,6 +22,14 @@ namespace BelowTheStoneWiki {
             public static void SODatabaseInit(SODatabase __instance) {
                 Instance.DocItems(__instance);
             }
+        }
+
+        private string FindRecipe(ItemType itemType) {
+            if (recipes.TryGetValue(itemType, out List<CraftingRecipe> craftingRecipes)) {
+                return string.Join("\n", craftingRecipes.Select(r => IngredientsToString(r.Ingredients)));
+            }
+
+            return "";
         }
 
         private void DocItems(SODatabase database) {
@@ -39,6 +48,8 @@ namespace BelowTheStoneWiki {
 
             List<ItemType> food = new List<ItemType>();
             List<ItemType> consumables = new List<ItemType>();
+
+            recipes.Clear();
 
             foreach (DatabaseElement databaseElement in database.MasterList) {
                 if (databaseElement is ItemType itemType) {
@@ -76,31 +87,47 @@ namespace BelowTheStoneWiki {
                         uncategorized.Add(itemType);
                     }
                 }
+
+                if (databaseElement is CraftingRecipe recipe) {
+                    if (recipe.IsHidden || !recipe.IsValid) {
+                        continue;
+                    }
+
+                    if (!recipes.ContainsKey(recipe.RecipeOutput.ItemType)) {
+                        recipes[recipe.RecipeOutput.ItemType] = new List<CraftingRecipe>();
+                    }
+
+                    recipes[recipe.RecipeOutput.ItemType].Add(recipe);
+                }
             }
 
             AddText("\n\n=== Ore ===\n");
             AddTable("",
                 ore.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
+                i => new object[] {
+                    i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description
+                }
             );
 
             AddText("\n\n=== Ingots ===\n");
             AddTable("",
                 ingots.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
+                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Recipe", "Description" },
+                i => new object[] {
+                    i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, FindRecipe(i), i.Description
+                }
             );
 
             AddText("\n\n=== Tools ===\n");
             AddTable("",
                 tools.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Pickaxe Power", "Mining Tier", "Description" },
+                new[] { "Name", "Item ID", "Coin Value", "Pickaxe Power", "Mining Tier", "Recipe", "Description" },
                 i => {
                     PickaxeItemType pickaxe = i as PickaxeItemType;
                     return new object[] {
                         i.DisplayName, i.NameID, i.GoldCoinValue, pickaxe ? pickaxe.PickaxePower : (int?)null, pickaxe ? pickaxe.MiningTier : (int?)null,
-                        i.Description
+                        FindRecipe(i), i.Description
                     };
                 }
             );
@@ -108,18 +135,21 @@ namespace BelowTheStoneWiki {
             AddText("\n\n=== Melee Weapons ===\n");
             AddTable("",
                 meleeWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Damage", "Attack Speed", "Reach", "Sweep", "Knockback", "Description" },
-                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.Damage, i.SwingRate, i.ReachDistance, i.SwingWidth, i.Knockback, i.Description }
+                new[] { "Name", "Item ID", "Coin Value", "Damage", "Attack Speed", "Reach", "Sweep", "Knockback", "Recipe", "Description" },
+                i => new object[] {
+                    i.DisplayName, i.NameID, i.GoldCoinValue, i.Damage, i.SwingRate, i.ReachDistance, i.SwingWidth, i.Knockback, FindRecipe(i), i.Description
+                }
             );
 
             AddText("\n\n=== Ranged Weapons ===\n");
             AddTable("",
                 rangedWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Ammunition", "Ammunition Count", "Fire Rate", "Description" },
+                new[] { "Name", "Item ID", "Coin Value", "Ammunition", "Ammunition Count", "Fire Rate", "Recipe", "Description" },
                 i => {
                     RangedWeaponLogic itemLogic = i.itemPrefab.GetComponent<RangedWeaponLogic>();
                     return new object[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue, itemLogic.ammunition.DisplayName, itemLogic.ammunitionCount, itemLogic.fireRate, i.Description
+                        i.DisplayName, i.NameID, i.GoldCoinValue, itemLogic.ammunition.DisplayName, itemLogic.ammunitionCount, itemLogic.fireRate,
+                        FindRecipe(i), i.Description
                     };
                 }
             );
@@ -127,46 +157,54 @@ namespace BelowTheStoneWiki {
             AddText("\n\n=== Ammunition ===\n");
             AddTable("",
                 ammo.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
+                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Recipe", "Description" },
+                i => new object[] {
+                    i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, FindRecipe(i), i.Description
+                }
             );
 
             AddText("\n\n=== Thrown Weapons ===\n");
             AddTable("",
                 thrownWeapons.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Damage", "Description" },
+                new[] { "Name", "Item ID", "Coin Value", "Damage", "Recipe", "Description" },
                 i => {
                     ThrowableItemLogic itemLogic = i.itemPrefab.GetComponent<ThrowableItemLogic>();
-                    return new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, itemLogic.projectileDamage, i.Description };
+                    return new object[] {
+                        i.DisplayName, i.NameID, i.GoldCoinValue, itemLogic.projectileDamage, FindRecipe(i), i.Description
+                    };
                 }
             );
 
             AddText("\n\n=== Armor ===\n");
             AddTable("",
                 armour.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Damage Resistance", "Body Part", "Description" },
-                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.DamageResistence, i.BodyPart, i.Description }
+                new[] { "Name", "Item ID", "Coin Value", "Damage Resistance", "Body Part", "Recipe", "Description" },
+                i => new object[] {
+                    i.DisplayName, i.NameID, i.GoldCoinValue, i.DamageResistence, i.BodyPart, FindRecipe(i), i.Description
+                }
             );
 
             AddText("\n\n=== Food ===\n");
             AddTable("",
                 food.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Heal", "Description" },
+                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Heal", "Recipe", "Description" },
                 i => {
                     BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
-                    return new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, itemLogic.healAmount, i.Description };
+                    return new object[] {
+                        i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, itemLogic.healAmount, FindRecipe(i), i.Description
+                    };
                 }
             );
 
             AddText("\n\n=== Consumables ===\n");
             AddTable("",
                 consumables.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Effect", "Effect Duration in Seconds", "Description" },
+                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Effect", "Effect Duration in Seconds", "Recipe", "Description" },
                 i => {
                     BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
                     return new object[] {
                         i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, itemLogic.applyEffectOnConsume.DisplayName, itemLogic.effectDuration,
-                        i.Description
+                        FindRecipe(i), i.Description
                     };
                 }
             );
@@ -174,8 +212,8 @@ namespace BelowTheStoneWiki {
             AddText("\n\n== Uncategorized ==\n");
             AddTable("",
                 uncategorized.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
-                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description }
+                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Recipe", "Description" },
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, FindRecipe(i), i.Description }
             );
 
             Plugin.Log.LogInfo("Finished documenting items");

@@ -25,6 +25,7 @@ namespace BelowTheStoneWiki {
             docs = new List<Doc>() {
                 new ItemDoc(),
                 new CreatureDoc(),
+                new RecipeDoc(),
             };
         }
     }

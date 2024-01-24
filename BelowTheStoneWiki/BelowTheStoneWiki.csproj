@@ -70,6 +70,7 @@
         <Compile Include="ItemDoc.cs" />
         <Compile Include="Plugin.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="RecipeDoc.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <Target Name="AfterBuild" Condition="Exists('$(MOD_DEPLOYPATH)')">
