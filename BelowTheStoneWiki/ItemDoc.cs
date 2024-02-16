@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using BelowTheStone;
 using BelowTheStone.Crafting;
 using BelowTheStone.NewDatabase;
@@ -77,8 +78,8 @@ namespace BelowTheStoneWiki {
                         }
                     } else if (itemType.Location == "armor" && itemType is ClothingItem clothingItem) {
                         armour.Add(clothingItem);
-                    } else if (itemType.Location == "consumable" && itemType.itemPrefab.TryGetComponent(out BasicItemLogic itemLogic)) {
-                        if (itemLogic.applyEffectOnConsume) {
+                    } else if (itemType.Location == "consumable" && itemType.itemPrefab.TryGetComponent(out ConsumableItemLogic consumableItemLogic)) {
+                        if (consumableItemLogic.applyEffectOnConsume) {
                             consumables.Add(itemType);
                         } else {
                             food.Add(itemType);
@@ -189,7 +190,7 @@ namespace BelowTheStoneWiki {
                 food.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Heal", "Recipe", "Description" },
                 i => {
-                    BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
+                    ConsumableItemLogic itemLogic = i.itemPrefab.GetComponent<ConsumableItemLogic>();
                     return new object[] {
                         i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, itemLogic.healAmount, FindRecipe(i), i.Description
                     };
@@ -199,11 +200,15 @@ namespace BelowTheStoneWiki {
             AddText("\n\n=== Consumables ===\n");
             AddTable("",
                 consumables.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
-                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Effect", "Effect Duration in Seconds", "Recipe", "Description" },
+                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Effect", "Recipe", "Description" },
                 i => {
-                    BasicItemLogic itemLogic = i.itemPrefab.GetComponent<BasicItemLogic>();
+                    ConsumableItemLogic consumableItemLogic = i.itemPrefab.GetComponent<ConsumableItemLogic>();
+                    StringBuilder effectDescription = new StringBuilder();
+                    consumableItemLogic.applyEffectOnConsume.AppendStatsToString(effectDescription, consumableItemLogic.effectDuration);
+
                     return new object[] {
-                        i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, itemLogic.applyEffectOnConsume.DisplayName, itemLogic.effectDuration,
+                        i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit,
+                        $"{consumableItemLogic.applyEffectOnConsume.DisplayName}: {effectDescription.ToString()}",
                         FindRecipe(i), i.Description
                     };
                 }
