@@ -27,7 +27,7 @@ namespace BelowTheStoneWiki {
 
         private string FindRecipe(ItemType itemType) {
             if (recipes.TryGetValue(itemType, out List<CraftingRecipe> craftingRecipes)) {
-                return string.Join("\n", craftingRecipes.Select(r => IngredientsToString(r.Ingredients)));
+                return string.Join("\n", craftingRecipes.Where(r => !r.IsHidden).Select(r => IngredientsToString(r.Ingredients)));
             }
 
             return "";
@@ -38,6 +38,7 @@ namespace BelowTheStoneWiki {
 
             List<ItemType> ore = new List<ItemType>();
             List<ItemType> ingots = new List<ItemType>();
+            List<ItemType> resources = new List<ItemType>();
 
             List<ItemType> tools = new List<ItemType>();
 
@@ -46,6 +47,7 @@ namespace BelowTheStoneWiki {
             List<ItemType> thrownWeapons = new List<ItemType>();
             List<ItemType> ammo = new List<ItemType>();
             List<ClothingItem> armour = new List<ClothingItem>();
+            List<ClothingItem> cosmetics = new List<ClothingItem>();
 
             List<ItemType> food = new List<ItemType>();
             List<ItemType> consumables = new List<ItemType>();
@@ -62,6 +64,8 @@ namespace BelowTheStoneWiki {
                         ore.Add(itemType);
                     } else if (itemType.Location == "ingot") {
                         ingots.Add(itemType);
+                    } else if (itemType.Location == "resource") {
+                        resources.Add(itemType);
                     } else if (itemType.Location == "tool") {
                         tools.Add(itemType);
                     } else if (itemType.Location == "ammo") {
@@ -76,8 +80,14 @@ namespace BelowTheStoneWiki {
                         } else {
                             uncategorized.Add(itemType);
                         }
-                    } else if (itemType.Location == "armor" && itemType is ClothingItem clothingItem) {
-                        armour.Add(clothingItem);
+                    } else if (itemType is ClothingItem clothingItem) {
+                        if (itemType.Location == "armor") {
+                            armour.Add(clothingItem);
+                        } else if (itemType.Location == "cosmetic") {
+                            cosmetics.Add(clothingItem);
+                        } else {
+                            uncategorized.Add(itemType);
+                        }
                     } else if (itemType.Location == "consumable" && itemType.itemPrefab.TryGetComponent(out ConsumableItemLogic consumableItemLogic)) {
                         if (consumableItemLogic.applyEffectOnConsume) {
                             consumables.Add(itemType);
@@ -117,6 +127,15 @@ namespace BelowTheStoneWiki {
                 new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Recipe", "Description" },
                 i => new object[] {
                     i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, FindRecipe(i), i.Description
+                }
+            );
+
+            AddText("\n\n=== Resources ===\n");
+            AddTable("",
+                resources.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
+                new[] { "Name", "Item ID", "Coin Value", "Stack Limit", "Description" },
+                i => new object[] {
+                    i.DisplayName, i.NameID, i.GoldCoinValue, i.StackLimit, i.Description
                 }
             );
 
@@ -183,6 +202,13 @@ namespace BelowTheStoneWiki {
                 i => new object[] {
                     i.DisplayName, i.NameID, i.GoldCoinValue, i.DamageResistence, i.BodyPart, FindRecipe(i), i.Description
                 }
+            );
+
+            AddText("\n\n=== Cosmetics ===\n");
+            AddTable("",
+                cosmetics.OrderBy(i => i.GoldCoinValue).ThenBy(i => i.DisplayName),
+                new[] { "Name", "Item ID", "Coin Value", "Body Part", "Description" },
+                i => new object[] { i.DisplayName, i.NameID, i.GoldCoinValue, i.BodyPart, i.Description }
             );
 
             AddText("\n\n=== Food ===\n");
